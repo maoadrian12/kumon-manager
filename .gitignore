@@ -1,2 +1,2 @@
 testing.go
-./database/password.go
+database/password.go
