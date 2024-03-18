@@ -30,7 +30,60 @@ const CreateAcc = (props) => {
         setPasswordError('Please enter a password')
         return
     }
+
+    checkAccountExists(username).then((accountExists) => {
+        console.log("result is " + accountExists)
+        if (accountExists) window.confirm('User already exists. Please login.')
+        else {
+          CreateAccount()
+        }
+      });
+
   }
+
+  const checkAccountExists = (username) => {
+    return fetch('http://localhost:8080/check', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({username}),
+    })
+      .then((r) => r.json())
+      .then((parent) => {
+        if (parent.Result === false) {
+          console.log('Parent does not exist');
+          return false;
+        } else {
+          console.log('Parent exists');
+          return true;
+        }
+      })
+}
+
+const CreateAccount = () => {
+    fetch('http://localhost:8080/createacc', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ "username": username, "pass": password, "name": name }),
+    })
+      .then((r) => r.json())
+      .then((parent) => {
+        console.log(parent.Result)
+        if (parent.Result === '') {
+            window.alert('Wrong password')
+        } else {
+          //localStorage.setItem('user', JSON.stringify({ username, token: parent.token }))
+          //props.setLoggedIn(true)
+          //props.setUsername(username)
+          navigate('/')
+        }
+      })
+  }
+
+
 
   return (
     <div className={'mainContainer'}>

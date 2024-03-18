@@ -8,6 +8,7 @@ import (
 
 	//"github.com/gin-gonic/gin"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 
 	database "kumondatabase.com/database"
 	models "kumondatabase.com/models"
@@ -24,24 +25,6 @@ func allParents(w http.ResponseWriter, r *http.Request) {
 	result := database.Database.Find(&parents)
 	if result.Error == nil {
 		utils.JsonResponse(w, parents)
-	}
-}
-
-func getParent(w http.ResponseWriter, r *http.Request) {
-	// Use r.URL.Query().Get() to get query parameters
-	username := r.URL.Query().Get("username")
-	password := r.URL.Query().Get("password")
-	var parent models.Parents
-	fmt.Printf("%s %s\n", username, password)
-
-	var result = database.Database.Where("username = ?", username).Where("pass = ?", password).First(&parent)
-	if result.Error == nil {
-		utils.JsonResponse(w, parent)
-	} else {
-		utils.JsonResponse(w, models.BaseResult{
-			Result:  false,
-			Message: "Parent not found",
-		})
 	}
 }
 
@@ -66,18 +49,50 @@ func createParent(w http.ResponseWriter, r *http.Request) {
 	result := database.Database.Create(&newParent)
 	fmt.Println(result.Error)
 
+	fmt.Println("Parent has been created")
 	utils.JsonResponse(w, models.BaseResult{
 		Result:  true,
-		Message: "Article has been created",
+		Message: "Parent has been created",
 	})
 }
+
+type RequestBody struct {
+	Username string `json:"username"`
+}
+
 func checkAcc(w http.ResponseWriter, r *http.Request) {
-	username := mux.Vars(r)["username"]
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var newParent models.Parents
+
+	utils.JsonDeserialize(reqBody, &newParent)
+
 	var parent models.Parents
-	result := database.Database.Where("username = ?", username).First(&parent)
+	result := database.Database.Where("username = ?", newParent.Username).First(&parent)
 	if result.Error == nil {
+		fmt.Println("Parent found")
 		utils.JsonResponse(w, parent)
 	} else {
+		fmt.Println("Parent not found")
+		utils.JsonResponse(w, models.BaseResult{
+			Result:  false,
+			Message: "Parent not found",
+		})
+	}
+}
+
+func getParent(w http.ResponseWriter, r *http.Request) {
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var newParent models.Parents
+
+	utils.JsonDeserialize(reqBody, &newParent)
+
+	var parent models.Parents
+	var result = database.Database.Where("username = ?", newParent.Username).Where("pass = ?", newParent.Pass).First(&parent)
+	if result.Error == nil {
+		fmt.Println("logging in...")
+		utils.JsonResponse(w, parent)
+	} else {
+		fmt.Println("cannot login")
 		utils.JsonResponse(w, models.BaseResult{
 			Result:  false,
 			Message: "Parent not found",
@@ -88,11 +103,12 @@ func checkAcc(w http.ResponseWriter, r *http.Request) {
 func handleRequests() {
 	myrouter := mux.NewRouter().StrictSlash(false)
 	myrouter.HandleFunc("/", allParents).Methods("GET")
-	myrouter.HandleFunc("/article/{id}", getParent).Methods("GET")
-	myrouter.HandleFunc("/article/{id}", deleteParent).Methods("DELETE")
-	myrouter.HandleFunc("/article", createParent).Methods("POST")
+	myrouter.HandleFunc("/parent", getParent).Methods("POST")
+	myrouter.HandleFunc("/parent/{id}", deleteParent).Methods("DELETE")
+	myrouter.HandleFunc("/createacc", createParent).Methods("POST")
 	myrouter.HandleFunc("/check", checkAcc).Methods("POST")
-	log.Fatal(http.ListenAndServe(":8080", myrouter))
+	handler := cors.Default().Handler(myrouter)
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }
 
 func main() {
