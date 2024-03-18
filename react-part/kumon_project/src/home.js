@@ -7,7 +7,6 @@ const Home = (props) => {
 
   const onButtonClick = () => {
     if (loggedIn) {
-      localStorage.removeItem("user")
       props.setLoggedIn(false)
     } else {
         navigate("/login")
