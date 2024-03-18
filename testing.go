@@ -1,15 +1,21 @@
+// Remove the package declaration in the selected code block.
+// Ensure that the main package is used instead.
+
 package main
 
-type parents struct {
-	Username string `gorm:"primaryKey"`
-	Name     string
-	Pass     string
-}
+import (
+	"context"
+	"fmt"
+	"os"
 
-func main() {
-	testing()
+	"github.com/jackc/pgx/v5"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+)
+
+func testing() {
 	// Capture connection properties.
-	/*var dsn = "host=localhost user=postgres password=4B-R05miyo dbname=kumon_database port=9292 sslmode=disable"
+	var dsn = "host=localhost user=postgres password=4B-R05miyo dbname=kumon_database port=9292 sslmode=disable"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	database_url := "postgres://postgres:4B-R05miyo@localhost:9292/kumon_database"
 	conn, err := pgx.Connect(context.Background(), database_url)
@@ -29,7 +35,7 @@ func main() {
 		os.Exit(1)
 	}*/
 	//fmt.Println(username, name, pass)
-	/*
-		fmt.Printf("username: %s\n", parent.Username)
-		fmt.Printf("%d rows effected\n", user.RowsAffected)*/
+
+	fmt.Printf("username: %s\n", parent.Username)
+	fmt.Printf("%d rows effected\n", user.RowsAffected)
 }

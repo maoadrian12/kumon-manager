@@ -10,7 +10,25 @@ const Login = (props) => {
   const navigate = useNavigate()
 
   const onButtonClick = () => {
-    // You'll update this function later...
+    setEmailError('')
+    setPasswordError('')
+
+    // Check if the user has entered both fields correctly
+    if ('' === email) {
+        setEmailError('Please enter your email')
+        return
+    }
+
+    if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+        setEmailError('Please enter a valid email')
+        return
+    }
+
+    if ('' === password) {
+        setPasswordError('Please enter a password')
+        return
+    }
+
   }
 
   return (
@@ -41,6 +59,9 @@ const Login = (props) => {
       <br />
       <div className={'inputContainer'}>
         <input className={'inputButton'} type="button" onClick={onButtonClick} value={'Log in'} />
+      </div>
+      <div>
+        <p>Create a new account <a href="/createacc">here</a></p>
       </div>
     </div>
   )
