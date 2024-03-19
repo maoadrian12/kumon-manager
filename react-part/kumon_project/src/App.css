@@ -2,11 +2,46 @@
   flex-direction: column;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   height: 100vh;
+  background-color: #71cff8;
+}
+
+.subContainer{
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8vh;
+  width: 100%;
+  background-color: #71cff8;
+}
+
+
+.separator {
+  height: 1vh;
+  width: 100%;
+  background-color: black;
+  border: none;
+}
+
+.deleteButton {
+  position: absolute;
+  right: -38vw;
+  top: 50%;
+  transform: translateY(-50%);
+
+}
+
+.signoutButton {
+  position: absolute;
+  left: -38vw;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .titleContainer {
+  position: relative;
   display: flex;
   flex-direction: column;
   font-size: 64px;
@@ -19,9 +54,15 @@
 .historyItem {
   flex-direction: row;
   display: flex;
-  width: 400px;
+  width: 100%; /* Change the width to 100% to take the full width of the parent */
   align-items: center;
   justify-content: space-between;
+}
+
+
+.smaller {
+  font-size: 35px;
+
 }
 
 .historyContainer {

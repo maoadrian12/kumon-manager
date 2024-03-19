@@ -77,13 +77,11 @@ const CreateAccount = () => {
         } else {
           //localStorage.setItem('user', JSON.stringify({ username, token: parent.token }))
           //props.setLoggedIn(true)
-          //props.setUsername(username)
-          navigate('/')
+          props.setUsername(username)
+          navigate('/account')
         }
       })
   }
-
-
 
   return (
     <div className={'mainContainer'}>

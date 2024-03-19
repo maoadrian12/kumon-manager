@@ -29,15 +29,37 @@ func allParents(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteParent(w http.ResponseWriter, r *http.Request) {
-	username := mux.Vars(r)["username"]
-	var deletedArticle models.Parents
-	result := database.Database.Where("username = ?", username).Delete(deletedArticle)
-	fmt.Println(result.Error)
+	//fmt.Printf("delete req got\n")
+	//fmt.Printf("usernamee is %s\n", username)
+	//var deletedArticle models.Parents
+	//result := database.Database.Where("username = ?", username).Delete(&deletedArticle)
+	//fmt.Println(result.Error)
 
-	utils.JsonResponse(w, models.BaseResult{
+	/*utils.JsonResponse(w, models.BaseResult{
 		Result:  true,
 		Message: "Parent has been deleted",
-	})
+	})*/
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var deleteParent models.Parents
+
+	utils.JsonDeserialize(reqBody, &deleteParent)
+
+	//var parent models.Parents
+	fmt.Printf("username is %s\n", deleteParent.Username)
+	result := database.Database.Where("username = ?", deleteParent.Username).Delete(&deleteParent)
+	if result.Error == nil {
+		fmt.Printf("successfully deleted\n")
+		utils.JsonResponse(w, models.BaseResult{
+			Result:  true,
+			Message: "Parent has been deleted",
+		})
+	} else {
+		fmt.Printf("failure in deletion\n")
+		utils.JsonResponse(w, models.BaseResult{
+			Result:  false,
+			Message: "Deletion failed",
+		})
+	}
 }
 
 func createParent(w http.ResponseWriter, r *http.Request) {
@@ -48,8 +70,6 @@ func createParent(w http.ResponseWriter, r *http.Request) {
 
 	result := database.Database.Create(&newParent)
 	fmt.Println(result.Error)
-
-	fmt.Println("Parent has been created")
 	utils.JsonResponse(w, models.BaseResult{
 		Result:  true,
 		Message: "Parent has been created",
@@ -69,10 +89,8 @@ func checkAcc(w http.ResponseWriter, r *http.Request) {
 	var parent models.Parents
 	result := database.Database.Where("username = ?", newParent.Username).First(&parent)
 	if result.Error == nil {
-		fmt.Println("Parent found")
 		utils.JsonResponse(w, parent)
 	} else {
-		fmt.Println("Parent not found")
 		utils.JsonResponse(w, models.BaseResult{
 			Result:  false,
 			Message: "Parent not found",
@@ -89,10 +107,8 @@ func getParent(w http.ResponseWriter, r *http.Request) {
 	var parent models.Parents
 	var result = database.Database.Where("username = ?", newParent.Username).Where("pass = ?", newParent.Pass).First(&parent)
 	if result.Error == nil {
-		fmt.Println("logging in...")
 		utils.JsonResponse(w, parent)
 	} else {
-		fmt.Println("cannot login")
 		utils.JsonResponse(w, models.BaseResult{
 			Result:  false,
 			Message: "Parent not found",
@@ -104,10 +120,16 @@ func handleRequests() {
 	myrouter := mux.NewRouter().StrictSlash(false)
 	myrouter.HandleFunc("/", allParents).Methods("GET")
 	myrouter.HandleFunc("/parent", getParent).Methods("POST")
-	myrouter.HandleFunc("/parent/{id}", deleteParent).Methods("DELETE")
+	myrouter.HandleFunc("/delete", deleteParent).Methods("POST")
 	myrouter.HandleFunc("/createacc", createParent).Methods("POST")
 	myrouter.HandleFunc("/check", checkAcc).Methods("POST")
-	handler := cors.Default().Handler(myrouter)
+	//handler := cors.Default().Handler(myrouter)
+	handler := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"}, // Your React app's origin
+		AllowedMethods:   []string{"GET", "POST", "DELETE", "PUT", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}).Handler(myrouter)
 	log.Fatal(http.ListenAndServe(":8080", handler))
 }
 
