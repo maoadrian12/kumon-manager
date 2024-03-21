@@ -40,6 +40,14 @@
   transform: translateY(-50%);
 }
 
+.signoutButton {
+  justify-content: flex-start; /* This will align the signoutButton to the left of its container */
+}
+
+.deleteButton {
+  justify-content: flex-end; /* This will align the deleteButton to the right of its container */
+}
+
 .titleContainer {
   position: relative;
   display: flex;
@@ -47,7 +55,30 @@
   font-size: 64px;
   font-weight: bolder;
   align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+}
+
+
+.studentContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  font-size: 32px;
+  font-weight: bolder;
+  align-items: center;
   justify-content: center;
+}
+
+.workContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  font-size: 28px;
+  font-weight: bolder;
+  align-items: center;
+  justify-content: center;
+
 }
 
 .resultContainer,
@@ -75,6 +106,7 @@
 }
 
 .buttonContainer {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;

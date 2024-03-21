@@ -52,6 +52,7 @@ const Login = (props) => {
           //props.setLoggedIn(true)
           //props.setUsername(username)
           props.setUsername(username)
+          localStorage.setItem('username', username);
           navigate('/account')
         }
       })

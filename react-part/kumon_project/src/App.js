@@ -3,6 +3,8 @@ import Home from './home'
 import Login from './login'
 import CreateAcc from './createacc'
 import Account from './account'
+import AddStudent from './addstudent'
+import ShowStudent from './ShowStudent'
 import './App.css'
 import { useEffect, useState } from 'react'
 
@@ -18,7 +20,8 @@ function App() {
           <Route path="/login" element={<Login setLoggedIn={setLoggedIn} setUsername={setUsername} />} />
           <Route path="/createacc" element={<CreateAcc setLoggedIn={setLoggedIn} setUsername={setUsername} />} />
           <Route path="/account" element={<Account username={username} setLoggedIn={setLoggedIn} setUsername={setUsername} />} />
-          <Route path="/addstudent" element={<Account username={username} setLoggedIn={setLoggedIn} setUsername={setUsername} />} />
+          <Route path="/addstudent" element={<AddStudent username={username} setUsername={setUsername}/>} />
+          <Route path="/student/:studentUsername" element={<ShowStudent username={username} setUsername={setUsername}/>} />
         </Routes>
       </BrowserRouter>
     </div>
