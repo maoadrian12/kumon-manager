@@ -24,7 +24,6 @@ const Account = (props) => {
         }
       })
   }
-
   
   useEffect(() => {
     getStudents();

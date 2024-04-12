@@ -1,10 +1,39 @@
 .mainContainer {
+  display:flex;
   flex-direction: column;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   height: 100vh;
   background-color: #71cff8;
+}
+
+.statistics {
+  width: 100%; /* This will make the workContainer elements take up the full width of the mainContainer */
+  display: flex;
+  flex-direction: row; /* This will make the content of the workContainer elements line up horizontally */
+  justify-content: space-between; /* This will space the content of the workContainer elements evenly across the width of the workContainer */
+}
+
+.math, .eng {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 50%;
+}
+.mathTitle, .englishTitle {
+  font-size: 32px;
+  font-weight: bolder;
+  color: black;
+}
+
+.wkstFilter {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 5%;
 }
 
 .subContainer{
@@ -16,7 +45,6 @@
   width: 100%;
   background-color: #71cff8;
 }
-
 
 .separator {
   height: 1vh;
@@ -133,4 +161,21 @@
   border-radius: 8px;
   border: 1px solid grey;
   padding-left: 8px;
+}
+
+.minBox {
+  height: 5vh;
+  width: 7vw;
+  font-size: small;
+  border-radius: 8px;
+  border: 1px solid grey;
+  margin-right: 1vh;
+}
+.maxBox {
+  height: 5vh;
+  width: 7vw;
+  font-size: small;
+  border-radius: 8px;
+  border: 1px solid grey;
+  margin-left: 1vh;
 }

@@ -7,6 +7,12 @@ const ShowStudent = (props) => {
   const [latestEnglish, setLatestEnglish] = useState('')
   const [secondSet, setSecondSet] = useState([]);
   const [values, setValues] = useState([]);
+  const [filterMath, setFilterMath] = useState('');
+  const [filterEng, setFilterEng] = useState('');
+  const [minMathWkst, setMinMathWkst] = useState('');
+  const [minEngWkst, setMinEngWkst] = useState('');
+  const [maxMathWkst, setMaxMathWkst] = useState('');
+  const [maxEngWkst, setMaxEngWkst] = useState('');
 
   useEffect(() => {
     if (latestMath) {
@@ -24,6 +30,35 @@ const ShowStudent = (props) => {
     perDay();
   }, []);
 
+  
+  const [mathLevels, setMathLevels] = useState([]);
+  const [engLevels, setEngLevels] = useState([]);
+  useEffect(() => {
+    getStudentLevels();
+    setMinMathWkst(1);
+    setMaxMathWkst(200);
+    setMinEngWkst(1);
+    setMaxEngWkst(200);
+  }, []);
+
+  const getStudentLevels = () => {
+    fetch('http://localhost:8080/getlevels', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ "name": studentUsername, "parent_username": localStorage.getItem('username')}) })
+      .then((r) => r.json())
+      .then((parent) => {
+        const [readingStr, mathStr] = parent.Message.slice(1, -1).split('] [');
+        const readingArr = readingStr.split(' ');
+        const mathArr = mathStr.split(' ');
+
+        setEngLevels(readingArr);
+        setMathLevels(mathArr);
+      })
+    }
+
   const getStudentWkst = () => {
     fetch('http://localhost:8080/getinfo', {
     method: 'POST',
@@ -38,7 +73,6 @@ const ShowStudent = (props) => {
           window.alert('Error getting student info.')
           console.log("error 1")
         } else {
-          console.log("success1");
           setLatestEnglish(parent.Message);
           setLatestMath(parent.Message);
           console.log(parent.Message);
@@ -183,6 +217,60 @@ const ShowStudent = (props) => {
       <div className={'workContainer'}>
         Math: {firstSet[3] + " " + firstSet[2]}
       </div>
+      <div className={'statistics'}>
+        <div className={'math'}>
+          <div className={'mathTitle'}>Math worksheets</div>
+          <select onChange={(e) => setFilterMath(e.target.value)}>
+            <option value=""> -- Level to filter through -- </option>
+                  {/* Mapping through each fruit object in our fruits array
+                and returning an option element with the appropriate attributes / values.
+              */}
+              {mathLevels.map((level) => <option value = {level}>{level}</option>)}
+          </select>
+          <div>Enter worksheets to filter through!</div>
+          <div className={'wkstFilter'}>
+            <input
+              value={minMathWkst}
+              placeholder="Minimum worksheet"
+              onChange={(ev) => setMinMathWkst(ev.target.value)}
+              className={'minBox'}
+            />
+            <input
+              value={maxMathWkst}
+              placeholder="Maximum worksheet"
+              onChange={(ev) => setMaxMathWkst(ev.target.value)}
+              className={'maxBox'}
+            />
+          </div>
+        </div>
+        <div className={'eng'}>
+          <div className={'englishTitle'}>English worksheets</div>
+          <select onChange={(e) => setFilterEng(e.target.value)}>
+            <option value=""> -- Level to filter through -- </option>
+                  {/* Mapping through each fruit object in our fruits array
+                and returning an option element with the appropriate attributes / values.
+              */}
+              {engLevels.map((level) => <option value = {level}>{level}</option>)}
+          </select>
+          <div>Enter worksheets to filter through!</div>
+          <div className={'wkstFilter'}>
+            <input
+              value={minEngWkst}
+              placeholder="Minimum worksheet"
+              onChange={(ev) => setMinEngWkst(ev.target.value)}
+              className={'minBox'}
+            />
+            <input
+              value={maxEngWkst}
+              placeholder="Maximum worksheet"
+              onChange={(ev) => setMaxEngWkst(ev.target.value)}
+              className={'maxBox'}
+            />
+          </div>
+        </div>
+      </div>
+
+
       <div className={'buttonContainer'}>
         <input
           className={'inputButton'}
