@@ -15,6 +15,7 @@ func CreateChild(w http.ResponseWriter, r *http.Request) {
 	reqBody, _ := io.ReadAll(r.Body)
 	var newChild models.Student
 	tx := database.Database.Begin()
+	tx.Exec("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
 
 	utils.JsonDeserialize(reqBody, &newChild)
 	result := tx.Create(&newChild)

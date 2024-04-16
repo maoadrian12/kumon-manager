@@ -34,6 +34,7 @@ func Complete(w http.ResponseWriter, r *http.Request) {
 	completionTime := parsedData["completion_time"]
 	grade := parsedData["grade"]
 	wkst := 0
+	tx.Exec("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
 	_, err = tx.Exec("INSERT INTO completes (student_name, parent_username, wkst_num, wkst_lvl, program_name, completion_time, grade) VALUES ($1, $2, $3, $4, $5, $6, $7)", studentUsername, parentUsername, wkstNumber, wkstLevel, programName, completionTime, grade)
 	if err != nil {
 		tx.Rollback()

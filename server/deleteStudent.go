@@ -17,6 +17,7 @@ func DeleteStudent(w http.ResponseWriter, r *http.Request) {
 
 	utils.JsonDeserialize(reqBody, &deleteStudent)
 	tx := database.Database.Begin()
+	tx.Exec("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
 	//var parent models.Parents
 	result := tx.Delete(&deleteStudent)
 	if result.Error == nil {

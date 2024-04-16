@@ -15,6 +15,7 @@ func CreateParent(w http.ResponseWriter, r *http.Request) {
 	reqBody, _ := ioutil.ReadAll(r.Body)
 	var newParent models.Parents
 	tx := database.Database.Begin()
+	tx.Exec("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
 
 	utils.JsonDeserialize(reqBody, &newParent)
 
