@@ -77,6 +77,7 @@ const CreateAccount = () => {
         } else {
           //localStorage.setItem('user', JSON.stringify({ username, token: parent.token }))
           //props.setLoggedIn(true)
+          window.alert('Account created!')
           localStorage.setItem('username', username);
           props.setUsername(username)
           navigate('/account')

@@ -16,15 +16,18 @@ func DeleteParent(w http.ResponseWriter, r *http.Request) {
 	var deleteParent models.Parents
 
 	utils.JsonDeserialize(reqBody, &deleteParent)
+	tx := database.Database.Begin()
 
 	//var parent models.Parents
-	result := database.Database.Delete(&deleteParent)
+	result := tx.Delete(&deleteParent)
 	if result.Error == nil {
+		tx.Commit()
 		utils.JsonResponse(w, models.BaseResult{
 			Result:  true,
 			Message: "Parent has been deleted",
 		})
 	} else {
+		tx.Rollback()
 		fmt.Printf("failure in deletion\n")
 		utils.JsonResponse(w, models.BaseResult{
 			Result:  false,

@@ -24,6 +24,7 @@ import (
 var Database *gorm.DB
 var Connection *pgxpool.Conn
 var Db *sql.DB
+var Database_url string
 
 func Testing() {
 	// Capture connection properties.
