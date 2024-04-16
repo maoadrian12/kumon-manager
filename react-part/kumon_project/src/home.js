@@ -19,7 +19,7 @@ const Home = (props) => {
         <div>Welcome!</div>
       </div>
       <div>Please login or create an account</div>
-      <div className={'buttonContainer'}>
+      <div className={'buttonContainer bottom_button'}>
         <input
           className={'inputButton'}
           type="button"

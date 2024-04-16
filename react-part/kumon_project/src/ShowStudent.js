@@ -13,22 +13,12 @@ const ShowStudent = (props) => {
   const [minEngWkst, setMinEngWkst] = useState('');
   const [maxMathWkst, setMaxMathWkst] = useState('');
   const [maxEngWkst, setMaxEngWkst] = useState('');
+  const [mathCompletionData, setMathCompletionData] = useState('');
+  const [mathGradeData, setMathGradeData] = useState('');
+  const [engCompletionData, setEngCompletionData] = useState('');
+  const [engGradeData, setEngGradeData] = useState('');
 
-  useEffect(() => {
-    if (latestMath) {
-      const values = latestMath.split(" ");
-      setSecondSet(values.slice(0, values.length / 2));
-      setFirstSet(values.slice(values.length / 2, values.length));
-    }
-  }, [latestMath]);
-  const [firstSet, setFirstSet] = useState([]);
-  const { studentUsername } = useParams();
-  useEffect(() => {
-    getStudentWkst();
-  }, []);
-  useEffect(() => {
-    perDay();
-  }, []);
+  
 
   
   const [mathLevels, setMathLevels] = useState([]);
@@ -51,11 +41,14 @@ const ShowStudent = (props) => {
       .then((r) => r.json())
       .then((parent) => {
         const [readingStr, mathStr] = parent.Message.slice(1, -1).split('] [');
-        const readingArr = readingStr.split(' ');
-        const mathArr = mathStr.split(' ');
-
-        setEngLevels(readingArr);
-        setMathLevels(mathArr);
+        const readingArr = readingStr.split(' ')
+        const mathArr = mathStr.split(' ')
+        mathArr.push('All levels')	
+        readingArr.push('All levels')	
+        setEngLevels(readingArr)
+        setMathLevels(mathArr)
+        setFilterEng('All levels')
+        setFilterMath('All levels')
       })
     }
 
@@ -103,10 +96,55 @@ const ShowStudent = (props) => {
       }
     })
   }
+
   const navigate = useNavigate()
 
   const signout = () => {
-        navigate("/account")
+    navigate("/account")
+  }
+
+  const changeEnglish = () => {
+    console.log(`Level is ${filterEng} and min is ${minEngWkst} and max is ${maxEngWkst}`)
+    fetch('http://localhost:8080/stats', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ "student_username": studentUsername, "parent_username": localStorage.getItem('username'), "wkst_level": filterEng, "min_wkst_number": minEngWkst, "max_wkst_number": maxEngWkst, "program_name": "READING" })
+      })
+      .then((r) => r.json())
+      .then((parent) => {
+        if (parent.Result === true) {
+          console.log(parent.Message)
+          const values = parent.Message.split(" ");
+          setEngCompletionData(values[0]);
+          setEngGradeData(values[1]);
+        } else {
+          window.alert('Error getting student info.');
+        }
+      })
+  }
+
+  const changeMath = () => {
+    console.log(`Level is ${filterMath} and min is ${minMathWkst} and max is ${maxMathWkst}`);
+    fetch('http://localhost:8080/stats', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ "student_username": studentUsername, "parent_username": localStorage.getItem('username'), "wkst_level": filterMath, "min_wkst_number": minMathWkst, "max_wkst_number": maxMathWkst, "program_name": "MATH" })
+      })
+      .then((r) => r.json())
+      .then((parent) => {
+        if (parent.Result === true) {
+          console.log(parent.Message)
+          const values = parent.Message.split(" ");
+          setMathCompletionData(values[0]);
+          setMathGradeData(values[1]);
+        } else {
+          window.alert('Error getting student info.');
+        }
+      })
   }
 
   const complete = (params) => {
@@ -162,8 +200,6 @@ const ShowStudent = (props) => {
       getStudentWkst();
   }
 
-
-
   const deleteAcc = () => {
     if (window.prompt('Please enter the student\'s name to confirm') === studentUsername) {
         console.log('deleting ' + studentUsername)
@@ -175,7 +211,6 @@ const ShowStudent = (props) => {
     body: JSON.stringify({ "name": studentUsername, "parent_username": localStorage.getItem('username')}) })
     .then((r) => r.json())
     .then((parent) => {
-        console.log(parent.Result)
         if (parent.Result === true) {
             window.alert('Student deleted')
             navigate('/account')
@@ -188,6 +223,29 @@ const ShowStudent = (props) => {
     });
     }
   }
+
+  useEffect(() => {
+    if (latestMath) {
+      const values = latestMath.split(" ");
+      setSecondSet(values.slice(0, values.length / 2));
+      setFirstSet(values.slice(values.length / 2, values.length));
+    }
+  }, [latestMath]);
+  const [firstSet, setFirstSet] = useState([]);
+  const { studentUsername } = useParams();
+  useEffect(() => {
+    getStudentWkst();
+  }, []);
+  useEffect(() => {
+    perDay();
+  }, []);
+  useEffect(() => {
+    setFilterEng('All levels')
+    setFilterMath('All levels')
+    changeMath();
+    changeEnglish();
+  })
+
   return (
     <div className="mainContainer">
       <div className={'titleContainer'}>
@@ -228,19 +286,33 @@ const ShowStudent = (props) => {
               {mathLevels.map((level) => <option value = {level}>{level}</option>)}
           </select>
           <div>Enter worksheets to filter through!</div>
+          
           <div className={'wkstFilter'}>
             <input
               value={minMathWkst}
               placeholder="Minimum worksheet"
-              onChange={(ev) => setMinMathWkst(ev.target.value)}
+              onChange={(ev) => setMinMathWkst(Math.min(ev.target.value, maxMathWkst))}
               className={'minBox'}
             />
             <input
               value={maxMathWkst}
               placeholder="Maximum worksheet"
-              onChange={(ev) => setMaxMathWkst(ev.target.value)}
+              onChange={(ev) => setMaxMathWkst(Math.max(ev.target.value, minMathWkst))}
               className={'maxBox'}
             />
+          </div>
+          <div>
+            <input
+            className={'filterButton'}
+            onClick={changeMath}
+            type="button"
+            value={'Apply filter'}
+            />
+          </div>
+          <div className={'center-text'}>
+            <h3>Statistics for {filterMath}</h3>
+            <p>Average completion time: {mathCompletionData}</p>
+            <p>Average grade: {mathGradeData}</p>
           </div>
         </div>
         <div className={'eng'}>
@@ -257,21 +329,34 @@ const ShowStudent = (props) => {
             <input
               value={minEngWkst}
               placeholder="Minimum worksheet"
-              onChange={(ev) => setMinEngWkst(ev.target.value)}
+              onChange={(ev) => setMinEngWkst(Math.min(ev.target.value, maxEngWkst))}
               className={'minBox'}
             />
             <input
               value={maxEngWkst}
               placeholder="Maximum worksheet"
-              onChange={(ev) => setMaxEngWkst(ev.target.value)}
+              onChange={(ev) => setMaxEngWkst(Math.max(ev.target.value, minEngWkst))}
               className={'maxBox'}
             />
+          </div>
+          <div>
+            <input
+            className={'filterButton'}
+            onClick={changeEnglish}
+            type="button"
+            value={'Apply filter'}
+            />
+          </div>
+          <div className={'center-text'}>
+            <h3>Statistics for {filterEng}</h3>
+            <p>Average completion time: {engCompletionData}</p>
+            <p>Average grade: {engGradeData}</p>
           </div>
         </div>
       </div>
 
 
-      <div className={'buttonContainer'}>
+      <div className={'buttonContainer bottom_button'}>
         <input
           className={'inputButton'}
           onClick={addWorksheets}

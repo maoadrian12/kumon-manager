@@ -127,7 +127,6 @@ const Account = (props) => {
             onClick={checkStudent}
             value={'Go to student'}
           />
-          
         </div>
       </div>
       <div className={'buttonContainer'}>
