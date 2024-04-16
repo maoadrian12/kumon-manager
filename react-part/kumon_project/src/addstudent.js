@@ -41,6 +41,11 @@ const AddStudent = (props) => {
         setUsernameError('Please enter a name')
         return
     }
+    if (childUsername.includes(' ')) {
+      setUsernameError('Please replace spaces with hypens.')
+      return
+  }
+
     if ('' === name) {
         setNameError('Please enter a math starting level')
         return
@@ -70,30 +75,9 @@ const AddStudent = (props) => {
         setPagesError('Please enter a number between 1 and 10')
         return
     }
-
+    setUsername(childUsername.replace(' ', '-'))
     CreateStudent()
-
   }
-
-  const checkAccountExists = (childUsername) => {
-    return fetch('http://localhost:8080/check', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({childUsername}),
-    })
-      .then((r) => r.json())
-      .then((parent) => {
-        if (parent.Result === false) {
-          console.log('Parent does not exist');
-          return false;
-        } else {
-          console.log('Parent exists');
-          return true;
-        }
-      })
-}
 
 const CreateStudent = () => {
     fetch('http://localhost:8080/createchild', {

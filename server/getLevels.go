@@ -33,8 +33,12 @@ func GetLevels(w http.ResponseWriter, r *http.Request) {
 	var reading_wksts []string
 	var math_wksts []string
 	var rows *sql.Rows
-	rows, err = database.Db.Query("SELECT DISTINCT wkst_lvl FROM completes WHERE student_name = $1 AND parent_username = $2 AND program_name = 'READING'",
-		studentName, parentName)
+	stmt, err := database.Db.Prepare("SELECT DISTINCT wkst_lvl FROM completes WHERE student_name = $1 AND parent_username = $2 AND program_name = 'READING'")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer stmt.Close()
+	rows, err = stmt.Query(studentName, parentName)
 	if err != nil {
 		fmt.Printf("Error parsing JSON: %s\n", err)
 		return
@@ -42,13 +46,17 @@ func GetLevels(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		if err := rows.Scan(&reading_wkst.Wkst_lvl); err != nil {
-			log.Fatal(err)
+			log.Fatal(err.Error())
 		} else {
 			reading_wksts = append(reading_wksts, reading_wkst.Wkst_lvl)
 		}
 	}
-	rows, err = database.Db.Query("SELECT DISTINCT wkst_lvl FROM completes WHERE student_name = $1 AND parent_username = $2 AND program_name = 'MATH'",
-		studentName, parentName)
+	stmt, err = database.Db.Prepare("SELECT DISTINCT wkst_lvl FROM completes WHERE student_name = $1 AND parent_username = $2 AND program_name = 'MATH'")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+	rows, err = stmt.Query(studentName, parentName)
 	if err != nil {
 		fmt.Println("Error querying from completes:", err)
 		return

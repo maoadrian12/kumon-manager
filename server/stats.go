@@ -34,13 +34,15 @@ func Stats(w http.ResponseWriter, r *http.Request) {
 	var rows *sql.Rows
 	var avg_completion_time float64
 	var avg_grade float64
+	var stmt *sql.Stmt
+	//var err error
 	if wkstLevel == "All levels" {
-		rows, err = database.Db.Query("SELECT avg(completion_time), avg(grade) FROM completes WHERE student_name = $1 AND parent_username = $2 AND program_name = $3 AND wkst_num >= $4 AND wkst_num <= $5", studentName, parentName, programName, minWkstNum, maxWkstNum)
+		stmt, err = database.Db.Prepare("SELECT avg(completion_time), avg(grade) FROM completes WHERE student_name = $1 AND parent_username = $2 AND program_name = $3 AND wkst_num >= $4 AND wkst_num <= $5")
 
 	} else {
-		rows, err = database.Db.Query("SELECT avg(completion_time), avg(grade) FROM completes WHERE student_name = $1 AND parent_username = $2 AND program_name = $3 AND wkst_num >= $4 AND wkst_num <= $5 AND wkst_lvl = $6", studentName, parentName, programName, minWkstNum, maxWkstNum, wkstLevel)
+		stmt, err = database.Db.Prepare("SELECT avg(completion_time), avg(grade) FROM completes WHERE student_name = $1 AND parent_username = $2 AND program_name = $3 AND wkst_num >= $4 AND wkst_num <= $5 AND wkst_lvl = $6")
 	}
-	defer rows.Close()
+	defer stmt.Close()
 	if err != nil {
 		fmt.Println("Error querying from completes:", err)
 		utils.JsonResponse(w, models.BaseResult{
@@ -48,6 +50,7 @@ func Stats(w http.ResponseWriter, r *http.Request) {
 			Message: "error getting wksts",
 		})
 	} else {
+		rows, err = stmt.Query(studentName, parentName, programName, minWkstNum, maxWkstNum, wkstLevel)
 		rows.Next()
 		rows.Scan(&avg_completion_time, &avg_grade)
 		utils.JsonResponse(w, models.BaseResult{

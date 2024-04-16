@@ -22,7 +22,7 @@ func CheckAcc(w http.ResponseWriter, r *http.Request) {
 	if result.Error == nil {
 		utils.JsonResponse(w, parent)
 	} else {
-		fmt.Println("Error checking account " + result.Error.Error())
+		fmt.Println("Error checking account" + result.Error.Error())
 		utils.JsonResponse(w, models.BaseResult{
 			Result:  false,
 			Message: "Parent not found",

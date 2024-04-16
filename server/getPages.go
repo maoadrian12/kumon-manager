@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 
@@ -26,8 +27,13 @@ func GetPages(w http.ResponseWriter, r *http.Request) {
 	studentName := parsedData["name"]
 	parentName := parsedData["parent_username"]
 	wkst := 0
-	err = database.Db.QueryRow("SELECT wkst_per_day FROM takes6 WHERE student_name = $1 AND parent_username = $2"+
-		"GROUP BY wkst_per_day LIMIT 1", studentName, parentName).Scan(&wkst)
+	stmt, err := database.Db.Prepare("SELECT wkst_per_day FROM takes6 WHERE student_name = $1 AND parent_username = $2" +
+		"GROUP BY wkst_per_day LIMIT 1")
+	if err != nil {
+		log.Println("Error preparing statement:", err.Error())
+	}
+	defer stmt.Close()
+	err = stmt.QueryRow(studentName, parentName).Scan(&wkst)
 	if err != nil {
 		fmt.Println("Error inserting into takes:", err)
 		utils.JsonResponse(w, models.BaseResult{

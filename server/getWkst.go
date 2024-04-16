@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 
@@ -27,9 +28,13 @@ func GetWkst(w http.ResponseWriter, r *http.Request) {
 	parentName := parsedData["parent_username"]
 	var reading_wkst models.Completes
 	var math_wkst models.Completes
-	err = database.Db.QueryRow("SELECT * FROM completes WHERE student_name = $1 AND parent_username = $2"+
-		"AND program_name = 'READING' ORDER BY wkst_lvl, wkst_num DESC LIMIT 1", studentName, parentName).Scan(&reading_wkst.Student_name, &reading_wkst.Parent_username, &reading_wkst.Wkst_num, &reading_wkst.Wkst_lvl, &reading_wkst.Program_name, &reading_wkst.Completion_time, &reading_wkst.Grade)
-
+	stmt, err := database.Db.Prepare("SELECT * FROM completes WHERE student_name = $1 AND parent_username = $2" +
+		"AND program_name = 'READING' ORDER BY wkst_lvl, wkst_num DESC LIMIT 1")
+	if err != nil {
+		log.Println(("Error preparing statement:" + err.Error()))
+	}
+	defer stmt.Close()
+	err = stmt.QueryRow(studentName, parentName).Scan(&reading_wkst.Student_name, &reading_wkst.Parent_username, &reading_wkst.Wkst_num, &reading_wkst.Wkst_lvl, &reading_wkst.Program_name, &reading_wkst.Completion_time, &reading_wkst.Grade)
 	if err != nil {
 		fmt.Println("Error querying from completes:", err)
 		utils.JsonResponse(w, models.BaseResult{
@@ -37,8 +42,13 @@ func GetWkst(w http.ResponseWriter, r *http.Request) {
 			Message: "error getting wksts",
 		})
 	}
-	err = database.Db.QueryRow("SELECT * FROM completes WHERE student_name = $1 AND parent_username = $2"+
-		"AND program_name = 'MATH' ORDER BY wkst_lvl, wkst_num DESC LIMIT 1", studentName, parentName).Scan(&math_wkst.Student_name, &math_wkst.Parent_username, &math_wkst.Wkst_num, &math_wkst.Wkst_lvl, &math_wkst.Program_name, &math_wkst.Completion_time, &math_wkst.Grade)
+	stmt, err = database.Db.Prepare("SELECT * FROM completes WHERE student_name = $1 AND parent_username = $2" +
+		"AND program_name = 'MATH' ORDER BY wkst_lvl, wkst_num DESC LIMIT 1")
+	if err != nil {
+		log.Println(("Error preparing statement:" + err.Error()))
+	}
+	defer stmt.Close()
+	err = stmt.QueryRow(studentName, parentName).Scan(&math_wkst.Student_name, &math_wkst.Parent_username, &math_wkst.Wkst_num, &math_wkst.Wkst_lvl, &math_wkst.Program_name, &math_wkst.Completion_time, &math_wkst.Grade)
 	if err != nil {
 		fmt.Println("Error querying from completes:", err)
 		utils.JsonResponse(w, models.BaseResult{
