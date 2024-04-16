@@ -2,11 +2,9 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -19,11 +17,62 @@ import (
 
 	database "kumondatabase.com/database"
 	models "kumondatabase.com/models"
+	server "kumondatabase.com/server"
 	utils "kumondatabase.com/utils"
 )
 
 var dbConnection *pgx.Conn
 
+func updateChild(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	buf := new(strings.Builder)
+	io.Copy(buf, r.Body)
+	var parsedData map[string]string
+	err := json.Unmarshal([]byte(buf.String()), &parsedData)
+	if err != nil {
+		fmt.Println("Error parsing JSON:", err)
+		return
+	}
+	studentName := parsedData["Student_name"]
+	parentName := parsedData["Parent_name"]
+	levelName := parsedData["math_level"]
+	programName := parsedData["reading_level"]
+	programName = strings.ToUpper(programName)
+	pagesPerDay := parsedData["pages_per_day"]
+	_, err = dbConnection.Exec(context.Background(),
+		"INSERT INTO takes6 (student_name, parent_username, level_name, program_name, wkst_per_day) VALUES ($1, $2, $3, $4, $5)",
+		studentName, parentName, levelName, "MATH", pagesPerDay)
+	_, err = database.Db.Exec("INSERT INTO completes (student_name, parent_username, wkst_num, wkst_lvl, program_name, completion_time, grade) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+		studentName, parentName, 0, levelName, "MATH", -1, -1)
+	_, err = dbConnection.Exec(context.Background(),
+		"INSERT INTO takes6 (student_name, parent_username, level_name, program_name, wkst_per_day) VALUES ($1, $2, $3, $4, $5)",
+		studentName, parentName, programName, "READING", pagesPerDay)
+	_, err = database.Db.Exec("INSERT INTO completes (student_name, parent_username, wkst_num, wkst_lvl, program_name, completion_time, grade) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+		studentName, parentName, 0, programName, "READING", -1, -1)
+	if err != nil {
+		fmt.Println("Error inserting into takes:", err)
+		utils.JsonResponse(w, models.BaseResult{
+			Result:  false,
+			Message: "error updating child",
+		})
+	} else {
+
+		if err != nil {
+			fmt.Println("Error inserting into completes:", err)
+			utils.JsonResponse(w, models.BaseResult{
+				Result:  false,
+				Message: "error updating child",
+			})
+		} else {
+			utils.JsonResponse(w, models.BaseResult{
+				Result:  true,
+				Message: "succesful",
+			})
+		}
+	}
+}
+
+/*
 func allParents(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	var parents []models.Parents
@@ -102,6 +151,7 @@ func checkAcc(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 }
+
 func checkStudent(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	reqBody, _ := ioutil.ReadAll(r.Body)
@@ -176,54 +226,7 @@ func createChild(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func updateChild(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	buf := new(strings.Builder)
-	io.Copy(buf, r.Body)
-	var parsedData map[string]string
-	err := json.Unmarshal([]byte(buf.String()), &parsedData)
-	if err != nil {
-		fmt.Println("Error parsing JSON:", err)
-		return
-	}
-	studentName := parsedData["Student_name"]
-	parentName := parsedData["Parent_name"]
-	levelName := parsedData["math_level"]
-	programName := parsedData["reading_level"]
-	programName = strings.ToUpper(programName)
-	pagesPerDay := parsedData["pages_per_day"]
-	_, err = dbConnection.Exec(context.Background(),
-		"INSERT INTO takes6 (student_name, parent_username, level_name, program_name, wkst_per_day) VALUES ($1, $2, $3, $4, $5)",
-		studentName, parentName, levelName, "MATH", pagesPerDay)
-	_, err = database.Db.Exec("INSERT INTO completes (student_name, parent_username, wkst_num, wkst_lvl, program_name, completion_time, grade) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-		studentName, parentName, 0, levelName, "MATH", -1, -1)
-	_, err = dbConnection.Exec(context.Background(),
-		"INSERT INTO takes6 (student_name, parent_username, level_name, program_name, wkst_per_day) VALUES ($1, $2, $3, $4, $5)",
-		studentName, parentName, programName, "READING", pagesPerDay)
-	_, err = database.Db.Exec("INSERT INTO completes (student_name, parent_username, wkst_num, wkst_lvl, program_name, completion_time, grade) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-		studentName, parentName, 0, programName, "READING", -1, -1)
-	if err != nil {
-		fmt.Println("Error inserting into takes:", err)
-		utils.JsonResponse(w, models.BaseResult{
-			Result:  false,
-			Message: "error updating child",
-		})
-	} else {
 
-		if err != nil {
-			fmt.Println("Error inserting into completes:", err)
-			utils.JsonResponse(w, models.BaseResult{
-				Result:  false,
-				Message: "error updating child",
-			})
-		} else {
-			utils.JsonResponse(w, models.BaseResult{
-				Result:  true,
-				Message: "succesful",
-			})
-		}
-	}
-}
 
 func getPages(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
@@ -347,7 +350,6 @@ func complete(w http.ResponseWriter, r *http.Request) {
 	completionTime := parsedData["completion_time"]
 	grade := parsedData["grade"]
 	wkst := 0
-	fmt.Printf("%s %s %s %s %s %s %s\n", studentUsername, parentUsername, wkstNumber, wkstLevel, programName, completionTime, grade)
 	_, err = database.Db.Exec("INSERT INTO completes (student_name, parent_username, wkst_num, wkst_lvl, program_name, completion_time, grade) VALUES ($1, $2, $3, $4, $5, $6, $7)", studentUsername, parentUsername, wkstNumber, wkstLevel, programName, completionTime, grade)
 	if err != nil {
 		fmt.Println("Error inserting into completes:", err)
@@ -363,12 +365,51 @@ func complete(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func nextLevel(w http.ResponseWriter, r *http.Request) {
+func stats(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	buf := new(strings.Builder)
+	io.Copy(buf, r.Body)
+	var parsedData map[string]interface{}
+	err := json.Unmarshal([]byte(buf.String()), &parsedData)
+	if err != nil {
+		fmt.Println("Error in go.")
+		fmt.Println("Error parsing JSON:", err)
+		return
+	}
+	// Extract variables from the parsed datastudentName := parsedData["student_username"].(string)studentName := parsedData["student_username"].(string)
+	studentName := parsedData["student_username"].(string)
+	parentName := parsedData["parent_username"].(string)
+	programName := parsedData["program_name"].(string)
+	minWkstNum := int(parsedData["min_wkst_number"].(float64))
+	maxWkstNum := int(parsedData["max_wkst_number"].(float64))
+	wkstLevel := parsedData["wkst_level"].(string)
+	var rows *sql.Rows
+	var avg_completion_time float64
+	var avg_grade float64
+	if wkstLevel == "All levels" {
+		rows, err = database.Db.Query("SELECT avg(completion_time), avg(grade) FROM completes WHERE student_name = $1 AND parent_username = $2 AND program_name = $3 AND wkst_num >= $4 AND wkst_num <= $5", studentName, parentName, programName, minWkstNum, maxWkstNum)
 
+	} else {
+		rows, err = database.Db.Query("SELECT avg(completion_time), avg(grade) FROM completes WHERE student_name = $1 AND parent_username = $2 AND program_name = $3 AND wkst_num >= $4 AND wkst_num <= $5 AND wkst_lvl = $6", studentName, parentName, programName, minWkstNum, maxWkstNum, wkstLevel)
+	}
+	defer rows.Close()
+	if err != nil {
+		fmt.Println("Error querying from completes:", err)
+		utils.JsonResponse(w, models.BaseResult{
+			Result:  false,
+			Message: "error getting wksts",
+		})
+	} else {
+		rows.Next()
+		rows.Scan(&avg_completion_time, &avg_grade)
+		utils.JsonResponse(w, models.BaseResult{
+			Result:  true,
+			Message: fmt.Sprintf("%v %v", avg_completion_time, avg_grade),
+		})
+	}
 }
 
 func getLevels(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("In this function!\n")
 	defer r.Body.Close()
 	buf := new(strings.Builder)
 	io.Copy(buf, r.Body)
@@ -390,6 +431,7 @@ func getLevels(w http.ResponseWriter, r *http.Request) {
 	rows, err = database.Db.Query("SELECT DISTINCT wkst_lvl FROM completes WHERE student_name = $1 AND parent_username = $2 AND program_name = 'READING'",
 		studentName, parentName)
 	if err != nil {
+		fmt.Printf("Error parsing JSON: %s\n", err)
 		return
 	}
 	defer rows.Close()
@@ -397,7 +439,6 @@ func getLevels(w http.ResponseWriter, r *http.Request) {
 		if err := rows.Scan(&reading_wkst.Wkst_lvl); err != nil {
 			log.Fatal(err)
 		} else {
-			fmt.Println("reading ", reading_wkst.Wkst_lvl)
 			reading_wksts = append(reading_wksts, reading_wkst.Wkst_lvl)
 		}
 	}
@@ -407,11 +448,11 @@ func getLevels(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error querying from completes:", err)
 		return
 	}
+	defer rows.Close()
 	for rows.Next() {
 		if err := rows.Scan(&math_wkst.Wkst_lvl); err != nil {
 			log.Fatal(err)
 		} else {
-			fmt.Println("math ", math_wkst.Wkst_lvl)
 			math_wksts = append(math_wksts, math_wkst.Wkst_lvl)
 		}
 	}
@@ -422,32 +463,31 @@ func getLevels(w http.ResponseWriter, r *http.Request) {
 			Message: "error getting wksts",
 		})
 	} else {
-		fmt.Printf("reading worksheets are: %v\n", reading_wksts)
-		fmt.Printf("math worksheets are: %v\n", math_wksts)
 		utils.JsonResponse(w, models.BaseResult{
 			Result:  true,
 			Message: fmt.Sprintf("%v %v", reading_wksts, math_wksts),
 		})
 	}
 }
+*/
 
 func handleRequests() {
 	myrouter := mux.NewRouter().StrictSlash(false)
-	myrouter.HandleFunc("/", allParents).Methods("GET")
-	myrouter.HandleFunc("/students", allStudents).Methods("POST")
-	myrouter.HandleFunc("/parent", getParent).Methods("POST")
-	myrouter.HandleFunc("/delete", deleteParent).Methods("POST")
-	myrouter.HandleFunc("/deletstudent", deleteStudent).Methods("POST")
-	myrouter.HandleFunc("/createacc", createParent).Methods("POST")
-	myrouter.HandleFunc("/createchild", createChild).Methods("POST")
+	myrouter.HandleFunc("/", server.AllParents).Methods("GET")
+	myrouter.HandleFunc("/students", server.AllStudents).Methods("POST")
+	myrouter.HandleFunc("/parent", server.GetParent).Methods("POST")
+	myrouter.HandleFunc("/delete", server.DeleteParent).Methods("POST")
+	myrouter.HandleFunc("/deletstudent", server.DeleteStudent).Methods("POST")
+	myrouter.HandleFunc("/createacc", server.CreateParent).Methods("POST")
+	myrouter.HandleFunc("/createchild", server.CreateChild).Methods("POST")
 	myrouter.HandleFunc("/updatechild", updateChild).Methods("POST")
-	myrouter.HandleFunc("/check", checkAcc).Methods("POST")
-	myrouter.HandleFunc("/checkstudent", checkStudent).Methods("POST")
-	myrouter.HandleFunc("/getpages", getPages).Methods("POST")
-	myrouter.HandleFunc("/getinfo", getWkst).Methods("POST")
-	myrouter.HandleFunc("/getlevels", getLevels).Methods("POST")
-	myrouter.HandleFunc("/complete", complete).Methods("POST")
-	myrouter.HandleFunc("/getNextLevel", nextLevel).Methods("POST")
+	myrouter.HandleFunc("/check", server.CheckAcc).Methods("POST")
+	myrouter.HandleFunc("/checkstudent", server.CheckStudent).Methods("POST")
+	myrouter.HandleFunc("/getpages", server.GetPages).Methods("POST")
+	myrouter.HandleFunc("/getinfo", server.GetWkst).Methods("POST")
+	myrouter.HandleFunc("/getlevels", server.GetLevels).Methods("POST")
+	myrouter.HandleFunc("/complete", server.Complete).Methods("POST")
+	myrouter.HandleFunc("/stats", server.Stats).Methods("POST")
 	handler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"}, // Your React app's origin
 		AllowedMethods:   []string{"GET", "POST", "DELETE", "PUT", "OPTIONS"},

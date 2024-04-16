@@ -91,23 +91,31 @@ const Account = (props) => {
 
   return (
     <div className="mainContainer">
-      <div className={'titleContainer'}>
-        <div>
-        <input
-            className={'signoutButton'}
+      <div classname={'titleContainer'}>
+        <div className={'titleContainer'}>
+          <div className={'smaller'}>Your Students</div>
+        </div>
+        <div className={'signoutButton2'}>
+          <input
+            className={'signoutButton2'}
             type="button"
             onClick={signout}
-            value={'Log out'}
+            value={'Go back'}
+          />
+        </div>
+        <div className={'studentName'}>
+          <h1>
+          Welcome {username}!
+          </h1>
+        </div>
+          <div className={'deleteButton2'}>
+            <input
+              className={'deleteButton2'}
+              type="button"
+              onClick={deleteAcc}
+              value={'Delete Account'}
             />
-            Welcome {username}!
-        <input
-            className={'deleteButton'}
-            type="button"
-            onClick={deleteAcc}
-            value={'Delete Account'}
-            />
-            </div>
-        <div className={'smaller'}>Your Students</div>
+          </div>
       </div>
       <hr className="separator"/>
       <div className={'studentContainer'}>
