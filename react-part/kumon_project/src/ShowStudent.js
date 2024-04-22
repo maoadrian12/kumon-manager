@@ -264,7 +264,7 @@ const ShowStudent = (props) => {
               className={'deleteButton2'}
               type="button"
               onClick={deleteAcc}
-              value={'Delete Account'}
+              value={'Delete Student'}
             />
           </div>
       </div>
