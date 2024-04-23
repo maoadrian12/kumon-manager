@@ -19,8 +19,8 @@ func DeleteParent(w http.ResponseWriter, r *http.Request) {
 	tx := database.Database.Begin()
 
 	//var parent models.Parents
-	result := tx.Delete(&deleteParent)
 	tx.Exec("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+	result := tx.Delete(&deleteParent)
 	if result.Error == nil {
 		tx.Commit()
 		utils.JsonResponse(w, models.BaseResult{
