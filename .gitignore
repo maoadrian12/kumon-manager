@@ -1,2 +1,4 @@
+#Ignore this file
 testing.go
+#Password for the postgres server I used.
 database/password.go
